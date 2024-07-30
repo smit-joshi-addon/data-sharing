@@ -8,8 +8,11 @@ import org.springframework.stereotype.Service;
 
 import com.truetrack.sharing.dtos.BusinessDataShareDetailDTO;
 import com.truetrack.sharing.dtos.BusinessDataShareDetailInternal;
+import com.truetrack.sharing.dtos.DataShareDTO;
+import com.truetrack.sharing.dtos.UserDTO;
 import com.truetrack.sharing.entity.BusinessDataShareDetail;
 import com.truetrack.sharing.entity.BusinessDataShareMaster;
+import com.truetrack.sharing.entity.Users;
 import com.truetrack.sharing.repository.BusinessDataShareDetailRepository;
 import com.truetrack.sharing.service.BusinessDataShareDetailService;
 import com.truetrack.sharing.service.BusinessDataShareMasterService;
@@ -31,10 +34,11 @@ public class BusinessDataShareDetailServiceImpl implements BusinessDataShareDeta
 		List<BusinessDataShareDetail> details = repository.findByDataShare(master);
 
 		return new BusinessDataShareDetailDTO(
-				details.stream().map(this::mapToInteral).collect(Collectors.toUnmodifiableList()), master);
+				details.stream().map(this::mapToDataShareDetails).collect(Collectors.toUnmodifiableList()),
+				mapToDataShare(master), mapToUser(master.getUser()));
 	}
 
-	private BusinessDataShareDetailInternal mapToInteral(BusinessDataShareDetail detail) {
+	private BusinessDataShareDetailInternal mapToDataShareDetails(BusinessDataShareDetail detail) {
 		if (detail == null) {
 			return null;
 		}
@@ -43,14 +47,23 @@ public class BusinessDataShareDetailServiceImpl implements BusinessDataShareDeta
 				detail.getCreatedByIp(), detail.getStatus());
 	}
 
+	private DataShareDTO mapToDataShare(BusinessDataShareMaster master) {
+		return new DataShareDTO(master.getDataShareId(), master.getSecret(), master.getCeatedBy(),
+				master.getCreatedByIp(), master.getStatus());
+	}
+
+	private UserDTO mapToUser(Users user) {
+		return new UserDTO(user.getUserId(), user.getName(), user.getEmail(), user.getStatus());
+	}
+
 	@Override
 	public BusinessDataShareDetailInternal getDetail(Integer dataShareDetailId) {
-		return mapToInteral(repository.findById(dataShareDetailId).orElseGet(null));
+		return mapToDataShareDetails(repository.findById(dataShareDetailId).orElseGet(null));
 	}
 
 	@Override
 	public BusinessDataShareDetailInternal addDetail(BusinessDataShareDetail detail) {
-		return mapToInteral(repository.save(detail));
+		return mapToDataShareDetails(repository.save(detail));
 	}
 
 }
